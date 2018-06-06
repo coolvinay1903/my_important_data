@@ -1,4 +1,0 @@
-###### Acrobat reader 9.4.2 #######
-
-set pa = `echo $path | sed -e 's/\/in\/Acrobat942\/bin//g'`
-set path = (/in/Acrobat942/bin $pa)
