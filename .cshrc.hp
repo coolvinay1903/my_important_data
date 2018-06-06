@@ -1,0 +1,60 @@
+#!/bin/csh -V
+
+#.cshrc:  Commands executed for each new csh
+
+echo `uname -a`
+
+#
+# "noclobber" prevents accidental replacement of files by use of ">"
+# redirection. ">!" will replace a file even with noclobber set.
+# filename completion (shelltool only), history limit
+# umask value restricts permissions on created directories.  027 says turn
+# off write permission for group members, and all permissions for others.
+# umask value is XORed with mode 777
+#
+
+set noclobber
+set filec
+set history=40
+set savehist=20
+set ignoreeof
+set nobeep
+umask 022
+if ( $?prompt ) then
+	stty erase ""
+	stty intr ""
+	stty kill ""
+endif
+
+# the following line will prevent core file to be generated
+
+limit coredumpsize 0
+
+# set up search path
+#set path = ( /usr/bin )
+
+set host = `hostname`
+set prompt = "`whoami`@`hostname`[\!] "
+
+#  skip remaining setup if not an interactive shell
+if ($?LOGNAME == 0 || $?prompt == 0) exit
+
+#######   ****SETENV***   ########
+setenv XENVIRONMENT    ~/.Xdefaults
+setenv EDITOR          vi
+setenv SHELL	       '/bin/csh'
+setenv MBOX	           ~/Mail/mbox
+setenv CC_PATH	       /usr/bin
+setenv PCRPROJECT      VirtuaLogic
+
+setenv MANPATH   /usr/local/man:/usr/man
+
+
+#######   ****path****   ######
+set cdpath =   (.. ~)
+set CCpath =   ( /opt/aCC/bin )
+set FLEXLMpath =   ( /newdev/imports/flexlm/hp700_u8 )
+
+#set path = (/usr/bin /opt/ansic/bin /usr/ccs/bin /usr/contrib/bin /opt/nettladm/bin /opt/fc/bin /opt/fcms/bin /opt/upgrade/bin /opt/pd/bin /usr/bin/X11 /usr/contrib/bin/X11 /opt/perf/bin /opt/OV/bin/OpC /opt/hparray/bin /opt/graphics/phigs/bin /opt/resmon/bin /opt/aCC/bin /opt/langtools/bin /opt/imake/bin)
+
+set path = (/usr/bin /opt/ansic/bin /usr/ccs/bin /usr/contrib/bin /usr/bin/X11 /usr/contrib/bin/X11 /opt/aCC/bin /opt/langtools/bin /opt/imake/bin)

@@ -1,0 +1,82 @@
+#!/bin/csh -f
+bindkey -e
+if ( ${?prompt} != 0 ) then
+	bindkey -e
+	# An interactive shell -- set some stuff up
+	set prompt = '(%n@%m:%~ )\n>> '
+	
+	if (-e ~/public/util_scripts/set_term_name.csh) then
+		if ( ${?SSH_TTY} != 0 || ${?VNCDESKTOP} != 0 ) then
+			source ~/public/util_scripts/set_term_name.csh
+		endif
+	endif
+	# Don't source emacs-25.2 automatically. Do a OS based check later in .alias
+	#senv emacs-25.2
+	if ( `hostname -d` == "inn.mentorg.com") then
+		setenv India_server 1
+    else
+        setenv India_server 0
+	endif
+	if ( $India_server == 1) then
+		if ( ${?SSH_TTY} != 0 || ${?VNCDESKTOP} != 0 ) then
+			# Source tkdiff automatically during startup
+			senv tkdiff-4.2
+			#Source simvision automatically
+			#senv ius13.20.020
+		endif
+	endif
+	
+	# Added from Anil's .mycshrc
+	set autolist = ambiguous
+	set complete = enhance
+	set autoexpand = true
+	
+	# History remembered is 2000
+	set history = (2000 "%R\n")
+	
+	# Save and merge with existing saved
+	set savehist = (2000 merge)
+	
+	# Save history in a file
+	set histfile = ~/.csh_history
+	set HISTFILE = ~/.csh_history
+	
+    #  If set to `ignore', the shell tries to construct a current directory relative to the current directory before the link was crossed.
+    #  This means that cding through a symbolic link and then `cd ..'ing returns one to the original directory. 
+    #  This only affects builtin commands and filename completion. 
+    set symlinks = ignore
+    set backslash_quote  = 1
+
+	set version = `uname -r`
+	#echo $version
+	switch ($version)
+		case *.el5 :
+			alias emacs '/tools/emacs/emacs-24.4/rhel5/bin/emacs'
+		breaksw
+		default :
+			if ( $India_server == 1 ) then
+				if ( ${?SSH_TTY} != 0 || ${?VNCDESKTOP} != 0) then
+			senv emacs-25.2
+			endif
+			endif
+		breaksw
+	endsw
+
+	##Some more keybindings
+  bindkey "\e[1~" beginning-of-line # Home
+  bindkey "\e[7~" beginning-of-line # Home rxvt
+  bindkey "\e[2~" overwrite-mode    # Ins
+  bindkey "\e[3~" delete-char       # Delete
+  bindkey "\e[4~" end-of-line       # End
+  bindkey "\e[8~" end-of-line       # End rxvt
+
+  setenv CSCOPE_EDITOR vim
+  setenv VOB_ROOT /home/vinays/.emacs.d
+## Control the ls color schema
+#  if ( ${?LS_COLORS}!=0 ) then
+#    setenv LS_COLORS $LS_COLORS:'di=4;35:'
+#  else
+#    setenv LS_COLORS 'di=4;35:'
+#  endif
+  setenv LS_COLORS 'di=4;35:';
+endif

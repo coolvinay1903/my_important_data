@@ -1,0 +1,6 @@
+#!/bin/csh -fv
+
+set path = (/tools/linux64/gcc-4.7.2/bin $path)
+if (! $?MAN_PATH) setenv MAN_PATH /usr/man
+setenv MAN_PATH  /tools/linux64/gcc-4.7.2/man/:$MAN_PATH 
+setenv LD_LIBRARY_PATH /tools/linux64/gcc-4.7.2/lib64:$LD_LIBRARY_PATH

@@ -1,0 +1,36 @@
+set pa = `echo $path | sed -e 's@/in/graphviz-2.28/[a-zA-Z0-9._/-]* @@g'`
+set path = ($pa)
+
+setenv KDE_PLATFORM `/in/scmtools/generic/sbin/machtype.sh -p`
+setenv KDE_OPSYS `/in/scmtools/generic/sbin/machtype.sh -o|cut -d '.' -f1`
+
+#if($KDE_OPSYS =~ {Linux5,Linux5.1,Linux5.2,Linux5.3,Linux5.4,Linux5.5,Linux5.6,Linux5}) then
+if($KDE_OPSYS == 'Linux5') then
+set path = ( /in/graphviz-2.28/Linux5/bin $path )
+
+
+        if ( $?LD_LIBRARY_PATH ) then
+                if ( `/bin/uname -p` == x86_64 ) then
+                        setenv LD_LIBRARY_PATH /in/graphviz-2.28/Linux5/lib:$LD_LIBRARY_PATH
+		endif
+        else
+               setenv LD_LIBRARY_PATH /in/graphviz-2.28/Linux5/lib
+        endif
+else if($KDE_OPSYS == 'Linux4') then
+set path = ( /in/graphviz-2.28/Linux4/bin $path )
+
+
+        if ( $?LD_LIBRARY_PATH ) then
+                if ( `/bin/uname -p` == x86_64 ) then
+                        setenv LD_LIBRARY_PATH /in/graphviz-2.28/Linux4/lib:$LD_LIBRARY_PATH
+		endif
+        else
+               setenv LD_LIBRARY_PATH /in/graphviz-2.28/Linux4/lib
+        endif
+else
+echo "Graphviz can only be sourced for only Linux 64 bit machines"
+exit 0
+endif
+
+
+

@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# .cshrc: Commands executed for each new csh
+#
+if  [  ${?prompt} != 0  ] ; then
+    set osname = `uname -s`
+    set version = `uname -r`
+    if  [  -e /ENV/alias ] ; then
+        source /ENV/alias
+    fi
+    if  [  -e /ENV/setdisplay  ] ; then
+        source /ENV/setdisplay
+    fi
+    set backslash_quote
+    switch ($osname)
+    case HP-UX:
+         switch ($version)
+         case B.*:
+              source $HOME/.cshrc.hp
+              breaksw
+         esac
+         breaksw
+         case SunOS:
+              switch ($version)
+              case 5.*:
+                   source ~$USER/.cshrc.solaris
+                   breaksw
+              esac
+              breaksw
+         case Linux:
+              switch ($version)
+              case 2.*:
+                   source ~$USER/.cshrc.linux
+                   breaksw
+              esac
+              breaksw
+              default:
+              echo "Unable to Source Environment"
+              exit 1
+         esac
+         if  [ -e ~/.mycshrc ] ; then
+             source ~/.mycshrc
+         fi
+         if  [ -e ~/.alias ] ; then
+             source ~/.alias
+         fi
+  fi

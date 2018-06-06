@@ -1,0 +1,68 @@
+#!/bin/csh -b
+#
+# .cshrc:  Commands executed for each new csh
+#
+#
+#echo " ######### .cshrc(SOLARIS) ######### "
+#
+# "noclobber" prevents accidental replacement of files by use of ">"
+# redirection. ">!" will replace a file even with noclobber set.
+set noclobber
+#
+# filename completion (shelltool only), history limit
+set filec
+set ignoreeof
+set nobeep
+set history=40
+set savehist=20
+set deftty=wy50
+set complete=enhance
+set autocorrect
+#
+# umask value restricts permissions on created directories.  027 says turn
+# off write permission for group members, and all permissions for others.
+# umask value is XORed with mode 777
+umask 022
+#
+# the foll line will prevent core file to be generated
+limit coredumpsize 0
+#
+# set up search path
+#
+set path = ( /usr/ucb /usr/bin . )
+set host = `hostname`
+alias cp        'cp -i'
+alias mv        'mv -i'
+alias rm        'rm -i'
+
+#          skip remaining setup if not an interactive shell
+if ($?USER == 0 || $?prompt == 0) exit
+
+set prompt = "`whoami`@`hostname`[\!] "
+alias setprompt 'echo -n ]0\;${host}:${cwd} '
+alias cd        'cd \!* ; setprompt'
+alias chdir     'chdir \!* ; setprompt'
+
+#######   ****SETENV***   ########
+setenv XENVIRONMENT     ~/.Xdefaults
+setenv PSLIBDIR         /utils/tran/lib
+setenv OPENWINHOME      /usr/openwin
+setenv RGB_DB           /usr/openwin/lib/rgb
+setenv EDITOR vi
+setenv SHELL	        '/bin/csh'
+setenv MBOX	        ~/Mail/mbox
+setenv XNEWSHOME	$OPENWINHOME
+setenv NOPSWM
+setenv X11ONLY
+setenv USE_MIT_VISUALS
+setenv GCC_LD_LIBRARY_PATH "/usr/local/lib:"
+setenv X11_LD_LIBRARY_PATH "/usr/openwin/lib:"
+setenv LD_LIBRARY_PATH /usr/lib:/usr/openwin/lib:/usr/dt/lib:/usr/local/lib
+setenv MANPATH /usr/man:/usr/local/man
+set X11Path =    ( $OPENWINHOME/bin $OPENWINHOME/demo )
+set path = (/usr/sbin /bin /usr/bin /usr/ucb /usr/ccs/bin /usr/openwin/bin /usr/local/bin /opt/sfw/bin /usr/sfw/bin . )
+
+stty erase 
+#foreach u ( vxl2.8 c++5.0 )
+#source /ENV/$u
+#end

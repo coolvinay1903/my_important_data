@@ -1,0 +1,35 @@
+#!/bin/bash
+osname=`uname -s`
+version=`uname -r`
+if  [[  -e /home/vinays/bash_settings/bash_software_source/alias.sh ]]  ; then
+    source /home/vinays/bash_settings/bash_software_source/alias.sh
+fi
+if  [[  -e /home/vinays/bash_settings/bash_software_source/setdisplay.sh  ]]  ; then
+    source /home/vinays/bash_settings/bash_software_source/setdisplay.sh
+fi
+if  [[  `hostname -a|cut -d. -f2` == "inn" ]] || [[  `hostname -f|cut -d. -f2` == "inn" ]]  ; then
+    export India_server=1
+else
+    export India_server=0
+fi
+export CSCOPE_EDITOR=vim
+export VOB_ROOT=/home/vinays/.emacs.d
+set -o emacs
+umask 022
+export XENVIRONMENT=~/.Xdefaults
+export EDITOR=vi
+export SHELL=/bin/bash
+export MBOX=~/Mail/mbox
+export GCC_LD_LIBRARY_PATH=/usr/local/lib64:/usr/local/lib
+export LD_LIBRARY_PATH=/usr/lib64:/usr/local/lib64:/usr/lib:/usr/local/lib
+export PATH=/usr/sbin/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin:.:/sbin:/home/vinays/public/util_scripts:$PATH
+if [[ $India_server == 1 ]] ; then
+    if [[ `uname -r|cut -f4 -d.` == "el6" ]] && [[ -e ~/bash_settings/bash_software_source/emacs-25.2.sh ]]; then
+        source ~/bash_settings/bash_software_source/emacs-25.2.sh
+    else
+        alias emacs='/home/vinays/public/emacs-25.2/src/emacs'
+    fi
+    if [[ -e ~/bash_settings/bash_software_source/tkdiff-4.2.sh ]]; then
+       source ~/bash_settings/bash_software_source/tkdiff-4.2.sh
+    fi
+fi
