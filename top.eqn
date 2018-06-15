@@ -1,0 +1,126 @@
+INORDER = counter[0] counter[1] counter[2] counter[3] counter[4] counter[5] 
+counter[6] counter[7] counter[8] counter[9] counter[10] counter[11] 
+counter[12] counter[13] counter[14] counter[15] counter[16] counter[17] 
+counter[18] counter[19] counter[20] counter[21] counter[22] counter[23] 
+counter[24] counter[25] counter[26] counter[27] counter[28] counter[29] 
+counter[30] counter[31] clk rtlc_ClkStart_N1 rtlc0_RTLC_GD_DONE_n1 
+rtlc1_RTLC_GD_DONE_n1 rtlcM_RTLSIM_DELAY_6_n3.ERTL_CLK_RDY rtlc0_S0_n37 
+rtlc0_S4_n41 rtlc0_S6_n43 rtlc1_S0_n29 rtlc1_S1_n30 rtlc1_S4_n33 rtlc1_S6_n35
+Vcc Vss
+;
+OUTORDER = I1 I2 rtlc_GDAO_n0 rtlc_GEO_n1 
+rtlc_en_rtlc_top_rtlc_ALW_top_M2_M3_sysBlkTask0out_ rtlc_GDAO_n2 rtlc_GEO_n3 
+rtlc_sysEn_n4 \rtlc_forceNet.tbx_active  rtlc_val_n6[0] rtlc_val_n6[1] 
+rtlc_val_n6[2] rtlc_val_n6[3] rtlc_val_n6[4] rtlc_val_n6[5] rtlc_val_n6[6] 
+rtlc_val_n6[7] rtlc_val_n6[8] rtlc_val_n6[9] rtlc_val_n6[10] rtlc_val_n6[11] 
+rtlc_val_n6[12] rtlc_val_n6[13] rtlc_val_n6[14] rtlc_val_n6[15] 
+rtlc_val_n6[16] rtlc_val_n6[17] rtlc_val_n6[18] rtlc_val_n6[19] 
+rtlc_val_n6[20] rtlc_val_n6[21] rtlc_val_n6[22] rtlc_val_n6[23] 
+rtlc_val_n6[24] rtlc_val_n6[25] rtlc_val_n6[26] rtlc_val_n6[27] 
+rtlc_val_n6[28] rtlc_val_n6[29] rtlc_val_n6[30] rtlc_val_n6[31] rtlc_sysEn_n7 
+\rtlc_releaseNet.tbx_active  rtlc_ERTL_PEDGE_CLK_RDY_N9 
+rtlc_ERTL_NEDGE_CLK_RDY_N10 clk_temp_net clk_rtlc_tbx_inv rtlc0_SS3_n40 
+rtlc_clk_FF_Input rtlc_rtlc_ClkStart_N1_FF_Input rtlc1_SS3_n32 rtlc1_SS5_n34 
+rtlc1_P4_S4_n41 rtlcn111;
+I1 = Vcc;
+I2 = counter[0];
+rtlc_GDAO_n0 = rtlc0_S6_n43 + rtlc0_S4_n41;
+rtlc_GEO_n1 = !rtlc0_SS3_n40*!rtlc0_S6_n43;
+rtlc_en_rtlc_top_rtlc_ALW_top_M2_M3_sysBlkTask0out_ = rtlc1_SS5_n34*!
+rtlc1_S6_n35;
+rtlc_GDAO_n2 = rtlc1_S6_n35 + rtlc1_S4_n33;
+rtlc_GEO_n3 = !rtlc1_P4_S4_n41*[6013];
+rtlc_sysEn_n4 = [5769];
+[5769] = [6057]*[6048];
+\rtlc_forceNet.tbx_active  = [5769];
+rtlc_val_n6[0] = Vcc;
+rtlc_val_n6[1] = Vss;
+rtlc_val_n6[2] = Vss;
+rtlc_val_n6[3] = Vss;
+rtlc_val_n6[4] = Vss;
+rtlc_val_n6[5] = Vss;
+rtlc_val_n6[6] = Vss;
+rtlc_val_n6[7] = Vss;
+rtlc_val_n6[8] = Vss;
+rtlc_val_n6[9] = Vss;
+rtlc_val_n6[10] = Vss;
+rtlc_val_n6[11] = Vss;
+rtlc_val_n6[12] = Vss;
+rtlc_val_n6[13] = Vss;
+rtlc_val_n6[14] = Vss;
+rtlc_val_n6[15] = Vss;
+rtlc_val_n6[16] = Vss;
+rtlc_val_n6[17] = Vss;
+rtlc_val_n6[18] = Vss;
+rtlc_val_n6[19] = Vss;
+rtlc_val_n6[20] = Vss;
+rtlc_val_n6[21] = Vss;
+rtlc_val_n6[22] = Vss;
+rtlc_val_n6[23] = Vss;
+rtlc_val_n6[24] = Vss;
+rtlc_val_n6[25] = Vss;
+rtlc_val_n6[26] = Vss;
+rtlc_val_n6[27] = Vss;
+rtlc_val_n6[28] = Vss;
+rtlc_val_n6[29] = Vss;
+rtlc_val_n6[30] = Vss;
+rtlc_val_n6[31] = Vss;
+rtlc_sysEn_n7 = [5803];
+[5803] = [6073]*[6048];
+\rtlc_releaseNet.tbx_active  = [5803];
+rtlc_ERTL_PEDGE_CLK_RDY_N9 = !clk*clk_temp_net;
+rtlc_ERTL_NEDGE_CLK_RDY_N10 = clk*clk_temp_net;
+clk_temp_net = rtlc_ClkStart_N1*rtlcM_RTLSIM_DELAY_6_n3.ERTL_CLK_RDY;
+clk_rtlc_tbx_inv = !clk;
+rtlc0_SS3_n40 = rtlc0_S4_n41 + rtlc0_S0_n37;
+rtlc_clk_FF_Input = [6081] + [6080];
+rtlc_rtlc_ClkStart_N1_FF_Input = [6082] + rtlc_ClkStart_N1;
+rtlc1_SS3_n32 = [6008] + rtlc1_S0_n29;
+rtlc1_SS5_n34 = rtlc1_S6_n35 + rtlc1_S1_n30;
+rtlc1_P4_S4_n41 = rtlc1_RTLC_GD_DONE_n1*rtlc1_S4_n33;
+rtlcn111 = !rtlc1_P4_S4_n41;
+rtlcn301 = [6020] + [6027];
+rtlcn308 = [6034] + [6041];
+[5911] = [6079] + [6074];
+[5912] = !rtlc0_S4_n41 + rtlc0_RTLC_GD_DONE_n1;
+[5923] = !rtlcn301*!rtlcn308;
+[5926] = !counter[30]*!counter[31];
+[5929] = !counter[28]*!counter[29];
+[5932] = !counter[26]*!counter[27];
+[5935] = !counter[8]*!counter[9];
+[5938] = !counter[6]*!counter[7];
+[5941] = !counter[4]*!counter[5];
+[5944] = !counter[2]*counter[3];
+[5947] = !counter[0]*counter[1];
+[5971] = counter[2]*!counter[3];
+[5974] = !counter[0]*!counter[1];
+[6008] = !rtlc1_RTLC_GD_DONE_n1*rtlc1_S4_n33;
+[6013] = !rtlc1_SS3_n32*!rtlc1_SS5_n34;
+[6016] = counter[17] + counter[16];
+[6019] = counter[15] + counter[14];
+[6020] = [6016] + [6019];
+[6023] = counter[13] + counter[12];
+[6026] = counter[11] + counter[10];
+[6027] = [6023] + [6026];
+[6030] = counter[25] + counter[24];
+[6033] = counter[23] + counter[22];
+[6034] = [6030] + [6033];
+[6037] = counter[21] + counter[20];
+[6040] = counter[19] + counter[18];
+[6041] = [6037] + [6040];
+[6044] = [5926]*[5923];
+[6047] = [5932]*[5929];
+[6048] = [6047]*[6044];
+[6051] = [5938]*[5935];
+[6055] = [5974]*[5971];
+[6056] = [5941]*[6055];
+[6057] = [6056]*[6051];
+[6071] = [5947]*[5944];
+[6072] = [5941]*[6071];
+[6073] = [6072]*[6051];
+[6074] = !rtlc0_S6_n43*[6078];
+[6078] = !clk*rtlc0_RTLC_GD_DONE_n1;
+[6079] = clk*!rtlc0_RTLC_GD_DONE_n1;
+[6080] = rtlc0_S4_n41*[5911];
+[6081] = clk*rtlc0_S6_n43;
+[6082] = !rtlc0_S6_n43*[5912];

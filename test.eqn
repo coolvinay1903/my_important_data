@@ -1,0 +1,9 @@
+INORDER = A B C D E K;
+OUTORDER = J L;
+F = A * B;
+G = C + D;
+H = !F;
+I = G + E;
+J = I + H;
+L = K * I;
+

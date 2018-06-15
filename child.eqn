@@ -1,0 +1,29 @@
+# Equations for "child_final" written by ABC on Mon May 28 19:42:44 2018
+INORDER = enable reset pos_counter[0] pos_counter[1] pos_counter[2] 
+ pos_counter[3] pos_counter[4] pos_counter[5] rtlc0n22[0] rtlc0n22[1] 
+ rtlc0n22[2] rtlc0n22[3] rtlc0n22[4] rtlc0n22[5];
+OUTORDER = rtlc_rtlc0_pos_counter_0_FF_Input 
+ rtlc_rtlc0_pos_counter_1_FF_Input rtlc_rtlc0_pos_counter_2_FF_Input 
+ rtlc_rtlc0_pos_counter_3_FF_Input rtlc_rtlc0_pos_counter_4_FF_Input 
+ rtlc_rtlc0_pos_counter_5_FF_Input;
+rtlc_rtlc0_pos_counter_0_FF_Input = n22 + !n24;
+n22 = n23 * rtlc0n22[0];
+n23 = enable * reset;
+n24 = n25 * pos_counter[0];
+n25 = !enable * reset;
+rtlc_rtlc0_pos_counter_1_FF_Input = n27 + n28;
+n27 = n23 * rtlc0n22[1];
+n28 = n25 * pos_counter[1];
+rtlc_rtlc0_pos_counter_2_FF_Input = n30 + n31;
+n30 = n23 * rtlc0n22[2];
+n31 = n25 * pos_counter[2];
+rtlc_rtlc0_pos_counter_3_FF_Input = n33 + n34;
+n33 = n23 * rtlc0n22[3];
+n34 = n25 * pos_counter[3];
+rtlc_rtlc0_pos_counter_4_FF_Input = n36 + n37;
+n36 = n23 * rtlc0n22[4];
+n37 = n25 * pos_counter[4];
+rtlc_rtlc0_pos_counter_5_FF_Input = n39 + n40;
+n39 = n23 * rtlc0n22[5];
+n40 = n25 * pos_counter[5];
+
