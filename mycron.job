@@ -1,0 +1,35 @@
+#!/bin/bash
+function update_and_setup_cscope() {
+    id="[update_and_setup_cscope]:";
+    current_dir=`pwd`
+    if [[ -d $1 ]]; then
+        cd $1;
+    else
+        echo "$id (E) $1 doesn't exist or permission denied."
+        return 1;
+    fi  
+    cvs -q up > /dev/null 2>&1 && echo "$id CVS update successful for `pwd` ($2).";
+    /home/vinays/public/util_scripts/setup_cscope;
+    if [[ $? -eq 0 ]]; then
+        echo "$id cscope done successfully for `pwd` ($2)."
+        cd $current_dir
+        return 0;
+    else
+        echo "$id (E) There was some issue with cscope for `pwd` ($2)."
+        cd $current_dir
+        return 1;
+    fi
+}
+#Tbx 1703
+branch="1703"
+update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_1703/src/behavc/source $branch
+update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_1703/src/Driver.4.1/source $branch
+update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_1703/src/src/ $#branch
+
+#Tbx DEV
+#branch="dev"
+#update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_dev/src/behavc/source $branch
+#update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_dev/src/Driver.4.1/source $branch
+#update_and_setup_cscope /in/TBX_SANDBOXES/vinays/tbx_dev/src/src/ $branch
+
+
