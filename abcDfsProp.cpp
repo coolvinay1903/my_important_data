@@ -2,23 +2,22 @@
 #include <vector>
 #include <map>
 #include "map/mio/mio.h"
-#include "base/io/ioAbc.h"
 ABC_NAMESPACE_IMPL_START
 
-typedef std::pair<Abc_Obj_t*, bool> FaultNodes;
-typedef std::pair<Abc_Obj_t*, Abc_Obj_t*> InvFaultNodes;
-typedef std::map <Abc_Obj_t*, bool> EquivFaultNodes;
-int debug = 1;
+typedef std::pair<Abc_Obj_t*, bool>       FaultNodes;
+typedef std::pair<Abc_Obj_t*, Abc_Obj_t*> InvFaultPair;
+typedef std::pair<Abc_Obj_t*, Abc_Obj_t*> EquivFaultPair;
+typedef std::map<Abc_Obj_t*, bool>        EquivFaultNodes;
+int                                       debug = 1;
 
-extern int Abc_NodeIsAnd2( Abc_Obj_t * pNode );
-extern int Abc_NodeIsOr2( Abc_Obj_t * pNode );
 class FaultCollapse {
 
 private:
     static EquivFaultNodes              EquivFaultNodes_zero, EquivFaultNodes_one;
     static std::vector<EquivFaultNodes> vEquivFaultClasses_zero;
     static std::vector<EquivFaultNodes> vEquivFaultClasses_one;
-    static std::vector<InvFaultNodes>   vInvFaultClasses;
+    static std::vector<InvFaultPair>    vInvFaultClasses;
+    static std::vector<EquivFaultPair>  vEquivFaultClasses;
 
 public:
     FaultCollapse() {
@@ -27,6 +26,7 @@ public:
         vEquivFaultClasses_zero.clear();
         vEquivFaultClasses_one.clear();
         vInvFaultClasses.clear();
+        vEquivFaultClasses.clear();
     }
     static void  Reset() {
         EquivFaultNodes_zero.clear();
@@ -34,14 +34,16 @@ public:
         vEquivFaultClasses_zero.clear();
         vEquivFaultClasses_one.clear();
         vInvFaultClasses.clear();
+        vEquivFaultClasses.clear();
     }
-    static bool  isAnd(Abc_Obj_t * pNode) ;
-    static bool  isBuf(Abc_Obj_t * pNode) ;
-    static bool  isInv(Abc_Obj_t * pNode) ;
-    static bool  isOr(Abc_Obj_t * pNode) ;
+    static bool isAnd(Abc_Obj_t * pNode) ;
+    static bool isBuf(Abc_Obj_t * pNode) ;
+    static bool isInv(Abc_Obj_t * pNode) ;
+    static bool isOr(Abc_Obj_t * pNode) ;
     static void InsertToEquivOneNodes(Abc_Obj_t * pNode, bool isComplemented = false);
     static void InsertToEquivZeroNodes(Abc_Obj_t * pNode, bool isComplemented = false);
     static void InsertToInvEquivNodes(Abc_Obj_t * pNode1, Abc_Obj_t * pNode2);
+    static void InsertToEquivNodes(Abc_Obj_t * pNode1, Abc_Obj_t * pNode2);
     static void ResetEquivOneNodes() ;
     static void ResetEquivZeroNodes() ;
     static void AddFaninsToEquivZeroNode(Abc_Obj_t * pNode);
@@ -54,7 +56,8 @@ EquivFaultNodes FaultCollapse::EquivFaultNodes_zero;
 EquivFaultNodes FaultCollapse::EquivFaultNodes_one;
 std::vector<EquivFaultNodes> FaultCollapse::vEquivFaultClasses_zero;
 std::vector<EquivFaultNodes> FaultCollapse::vEquivFaultClasses_one;
-std::vector<InvFaultNodes> FaultCollapse::vInvFaultClasses;
+std::vector<InvFaultPair> FaultCollapse::vInvFaultClasses;
+std::vector<EquivFaultPair> FaultCollapse::vEquivFaultClasses;
 void FaultCollapse::ResetEquivZeroNodes() {
     if (EquivFaultNodes_zero.size() == 0) return;
         vEquivFaultClasses_zero.push_back(EquivFaultNodes_zero);
@@ -67,42 +70,52 @@ void FaultCollapse::ResetEquivOneNodes() {
     if (debug) printf ("Added an equiv one class\n");
     EquivFaultNodes_one.clear();
 }
-void FaultCollapse::InsertToEquivZeroNodes(Abc_Obj_t * pNode, bool isComplemented)
+void FaultCollapse::InsertToEquivZeroNodes(Abc_Obj_t * pNode)
 {
     if (!pNode) return;
     if (EquivFaultNodes_zero.find(pNode) == EquivFaultNodes_zero.end()) {
-        FaultNodes n(pNode,isComplemented);
+        FaultNodes n(pNode);
         EquivFaultNodes_zero.insert(n);
         printf ("Adding %s to equiv zero node\n",Abc_ObjName(pNode));
     }
 }
-void FaultCollapse::InsertToEquivOneNodes(Abc_Obj_t * pNode, bool isComplemented)
+void FaultCollapse::InsertToEquivOneNodes(Abc_Obj_t * pNode)
 {
     if (!pNode) return;
     if (EquivFaultNodes_one.find(pNode) == EquivFaultNodes_one.end()) {
-        FaultNodes n(pNode,isComplemented);
-        EquivFaultNodes_one.insert(n);
+        FaultNodes n(pNode);
+        EquivFaultNodes_one.insert(pNode);
         printf ("Adding %s to equiv one node\n",Abc_ObjName(pNode));
     }
 }
 void FaultCollapse::InsertToInvEquivNodes(Abc_Obj_t * pNode1, Abc_Obj_t * pNode2)
 {
     if (!pNode1 || !pNode2) return;
-    InvFaultNodes inv(pNode1,pNode2);
+    InvFaultPair inv(pNode1,pNode2);
     vInvFaultClasses.push_back(inv);
     if (debug) printf ("Added an inv equiv class\n");
 }
+void FaultCollapse::InsertToEquivNodes(Abc_Obj_t * pNode1, Abc_Obj_t * pNode2)
+{
+    if (!pNode1 || !pNode2) return;
+    EquivFaultPair eqv(pNode1,pNode2);
+    vEquivFaultClasses.push_back(eqv);
+    if (debug) printf ("Added an equiv class\n");
+}
+
 bool FaultCollapse::isAnd(Abc_Obj_t * pNode) {
     //return Abc_NodeIsAnd2( pNode );
-    
+
     Abc_Ntk_t * pNtk = pNode->pNtk;
-    if ( Abc_ObjFaninNum(pNode) != 2 )
-        return 0;
+
     if ( Abc_NtkHasSop(pNtk) )
         return Abc_SopIsAndType(((char *)pNode->pData));
     if ( Abc_NtkIsMappedLogic(pNode->pNtk)) {
         char* pSop = Mio_GateReadSop((Mio_Gate_t *)pNode->pData);
-        return Abc_SopIsAndType(pSop);
+        if (Abc_SopIsAndType(pSop))
+            return 1;
+        else if (strncmp(Mio_GateReadName((Mio_Gate_t *)pNode->pData),"AND",3) == 0)
+            return 1;
     }
     return 0;
 }
@@ -110,8 +123,7 @@ bool FaultCollapse::isOr(Abc_Obj_t * pNode) {
     //return Abc_NodeIsOr2( pNode );
 
     Abc_Ntk_t * pNtk = pNode->pNtk;
-    if ( Abc_ObjFaninNum(pNode) != 2 )
-        return 0;
+
     if ( Abc_NtkHasSop(pNtk) )
         return ( Abc_SopIsOrType(((char *)pNode->pData))   ||
                 !strcmp(((char *)pNode->pData), "01 0\n") ||
@@ -120,10 +132,13 @@ bool FaultCollapse::isOr(Abc_Obj_t * pNode) {
     //off-sets, too
     if ( Abc_NtkIsMappedLogic(pNode->pNtk)) {
         char* pSop = Mio_GateReadSop((Mio_Gate_t *)pNode->pData);
-        return ( Abc_SopIsOrType(pSop) ||
+        if ( Abc_SopIsOrType(pSop) ||
                 strcmp(pSop,"01 0\n")   ||
                 strcmp(pSop,"10 0\n")   ||
-                strcmp(pSop,"00 0\n") );
+                strcmp(pSop,"00 0\n") )
+                return 1;
+        else if (strncmp(Mio_GateReadName((Mio_Gate_t *)pNode->pData),"OR",2) == 0)
+            return 1;
     }
     return 0;
 }
@@ -161,38 +176,48 @@ void FaultCollapse::AddFaninsToEquivOneNode(Abc_Obj_t * pNode) {
 
 **********************************************************************/
 void FaultCollapse::printEquivClasses() {
+    const char* filename = "equiv_fault_nodes.info";
+    FILE* fp = fopen(filename, "w");
+    if (!fp) {
+        printf ("Unable to open file %s.\n",filename);
+    }
     int equiv_class_count = 1;
     for ( int i = 0; i < vEquivFaultClasses_zero.size(); i++ ) {
         EquivFaultNodes mMapEquiv = vEquivFaultClasses_zero[i];
         if (mMapEquiv.empty()) continue;
-        printf ("Equiv Zero Class %d:\n",equiv_class_count++);
+        fprintf (fp ,"Equiv Zero Class %d:\n",equiv_class_count++);
         EquivFaultNodes::iterator iter, end;
         iter = mMapEquiv.begin();
         end = mMapEquiv.end();
         for (; iter != end; ++iter)
         {
-            printf ("%s%s ", (iter->second?"!":""),Abc_ObjName(iter->first));
+            fprintf (fp,"%s%s ", (iter->second?"!":""),Abc_ObjName(iter->first));
         }
-        printf("\n");
+        fprintf(fp, "\n");
     }
     equiv_class_count = 1;
     for ( int i = 0; i < vEquivFaultClasses_one.size(); i++ ) {
         EquivFaultNodes mMapEquiv = vEquivFaultClasses_one[i];
         if (mMapEquiv.empty()) continue;
-        printf ("Equiv One Class %d:\n",equiv_class_count++);
+        fprintf (fp, "Equiv One Class %d:\n",equiv_class_count++);
         EquivFaultNodes::iterator iter, end;
         iter = mMapEquiv.begin();
         end = mMapEquiv.end();
         for (; iter != end; ++iter)
         {
-            printf ("%s%s ", (iter->second?"!":""),Abc_ObjName(iter->first));
+            fprintf (fp, "%s%s ", (iter->second?"!":""),Abc_ObjName(iter->first));
         }
-        printf("\n");
+        fprintf(fp,"\n");
     }
     for ( int i = 0; i < vInvFaultClasses.size(); i++ ) {
-        printf ("Inv equiv Class %d:\n",i+1);
-        InvFaultNodes p = vInvFaultClasses[i];
-        printf ("%s => %s\n",Abc_ObjName(p.first),Abc_ObjName(p.second));
+        fprintf (fp, "Inv equiv Class %d:\n",i+1);
+        InvFaultPair p = vInvFaultClasses[i];
+        fprintf (fp, "%s => %s\n",Abc_ObjName(p.first),Abc_ObjName(p.second));
+    }
+    for ( int i = 0; i < vEquivFaultClasses.size(); i++ ) {
+        fprintf (fp, "Equiv Class %d:\n",i+1);
+        EquivFaultPair p = vEquivFaultClasses[i];
+        fprintf (fp, "%s => %s\n",Abc_ObjName(p.first),Abc_ObjName(p.second));
     }
 }
 
@@ -252,10 +277,12 @@ int FaultCollapse::getNextPropValue (Abc_Obj_t * pNode, int propZeroOld) {
         }
     }
     if (propZero == -1) {
-        if (isBuf(pNode))
+        if (isBuf(pNode)) {
             propZero = propZeroOld;
-        else
-            assert(propZero != -1);
+            InsertToEquivNodes(pInNet0,pOutNet);
+        }
+        /*else
+            assert(propZero != -1); */
     }
     return propZero;
 }
