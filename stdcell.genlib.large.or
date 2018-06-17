@@ -1,0 +1,13 @@
+GATE BUFX1	    5.00	Y=A                                                        ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00 
+GATE CONST0	    5.00	Y=CONST0; 
+GATE CONST1	    5.00	Y=CONST1;
+GATE INVX1	    2.00	Y=!(A)                                                     ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE OR2X1	    4.00	Y=A + (B)                                                  ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR3X1	    5.00	Y=A + (B + (C))                                            ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR4X1	    6.00	Y=((A + (B)) + (C + (D)))                                      ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR5X1	    7.00	Y=((A + (B)) + (C + (D + (E))))                                ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR6X1	    8.00	Y=((A + (B)) + (C + (D)) + (E + (F)))                          ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR7X1	    9.00	Y=(((A + (B)) + (C + (D))) + (E + (F + (G))))                    ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR8X1	   10.00	Y=A + (B + (C + (D + (E + (F + (G + (H)))))))              ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR9X1	   11.00	Y=A + (B + (C + (D + (E + (F + (G + (H + (I))))))))        ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE OR10X1	   12.00	Y=A + (B + (C + (D + (E + (F + (G + (H + (I + (J)))))))))  ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00

@@ -1,0 +1,9 @@
+# The genlib library "stdcell.genlib.orig" with 8 gates written by ABC on Fri Jun 15 22:06:00 2018
+GATE BUFX1      5.00  Y=A;                   PIN *   NONINV   1 999     1.00     0.00     1.00     0.00
+GATE INVX1      2.00  Y=!(A);                PIN *      INV   1 999     1.00     0.00     1.00     0.00
+GATE AND2X1     4.00  Y=A * (B);             PIN *      INV   1 999     1.00     0.00     1.00     0.00
+GATE AND3X1     5.00  Y=A * (B * (C));       PIN *      INV   1 999     1.00     0.00     1.00     0.00
+GATE AND4X1     6.00  Y=A * (B * (C * (D))); PIN *      INV   1 999     1.00     0.00     1.00     0.00
+GATE OR4X1      6.00  Y=A + (B + (C + (D))); PIN *   NONINV   1 999     1.00     0.00     1.00     0.00
+GATE OR3X1      6.00  Y=A + (B + (C));       PIN *   NONINV   1 999     1.00     0.00     1.00     0.00
+GATE OR2X1      4.00  Y=A + (B);             PIN *   NONINV   1 999     1.00     0.00     1.00     0.00

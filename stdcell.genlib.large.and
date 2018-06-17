@@ -1,0 +1,11 @@
+GATE BUFX1	    5.00	Y=A                                                        ; PIN * NONINV 1 999     1.00     0.00     1.00     0.00
+GATE INVX1	    2.00	Y=!(A)                                                     ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND2X1	    4.00	Y=A * (B)                                                  ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND3X1	    5.00	Y=A * (B * (C))                                            ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND4X1	    6.00	Y=A * (B * (C * (D)))                                      ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND5X1	    7.00	Y=A * (B * (C * (D * (E))))                                ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND6X1	    8.00	Y=A * (B * (C * (D * (E * (F)))))                          ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND7X1	    9.00	Y=A * (B * (C * (D * (E * (F * (G))))))                    ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND8X1	   10.00	Y=A * (B * (C * (D * (E * (F * (G * (H)))))))              ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND9X1	   11.00	Y=A * (B * (C * (D * (E * (F * (G * (H * (I))))))))        ; PIN * INV    1 999     1.00     0.00     1.00     0.00
+GATE AND10X1	 12.00	Y=A * (B * (C * (D * (E * (F * (G * (H * (I * (J)))))))))  ; PIN * INV    1 999     1.00     0.00     1.00     0.00
