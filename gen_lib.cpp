@@ -1,5 +1,7 @@
 #include<iostream>
 #include<string>
+#include<fstream>
+#include<stdio.h>
 using namespace std;
 
 void gen_lib(const int& max_in, const char op, FILE* fp) {
@@ -26,6 +28,10 @@ void gen_buf_and_inv(FILE* fp) {
     fprintf (fp, "GATE BUFX1\t%8.2f\t%-59s; PIN * NONINV 1 999     1.00     0.00     1.00     0.00\n",5.00,"Y=A");
     fprintf (fp, "GATE INVX1\t%8.2f\t%-59s; PIN * INV    1 999     1.00     0.00     1.00     0.00\n",2.00,"Y=!(A)");
 }
+void gen_constants(FILE* fp) {
+    fprintf(fp, "GATE CONST1\t%8.2f\t%-59s;\n",1.00,"Y=CONST1");
+    fprintf(fp, "GATE CONST0\t%8.2f\t%-59s;\n",1.00,"Y=CONST0");
+}
 void gen_and_lib(const int& max_in,FILE* fp) {
     gen_lib(max_in, '*', fp);
 }
@@ -43,6 +49,7 @@ int main() {
     gen_buf_and_inv(fp);
     gen_and_lib(max_in,fp);
     gen_or_lib(max_in,fp);
+    gen_constants(fp);
     fclose(fp);
     printf("Genlib written to %s\n.","stdcell.genlib.large");
 }
