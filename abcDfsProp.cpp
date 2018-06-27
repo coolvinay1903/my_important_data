@@ -2,17 +2,25 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
+#include <bitset>
+#include <algorithm>
+#include <string>
+using std::string;
 #include "map/mio/mio.h"
 ABC_NAMESPACE_IMPL_START
 
-struct FaultInfo;
+struct            FaultInfo;
+static const long NumCos = 100;
+static bool       debug  = 0;
+
 typedef std::set<Abc_Obj_t*>              ListOfNodes;
 typedef std::pair<Abc_Obj_t*, bool>       FaultNodes;
 typedef std::pair<Abc_Obj_t*, Abc_Obj_t*> InvFaultPair;
 typedef std::pair<Abc_Obj_t*, Abc_Obj_t*> EquivFaultPair;
 typedef std::map<Abc_Obj_t*, bool>        EquivFaultNodes;
-typedef std::map<Abc_Obj_t*,FaultInfo>    NodeFaultInfo;
-int                                       debug = 1;
+typedef std::map<Abc_Obj_t*, FaultInfo>   NodeFaultInfo;
+typedef std::list<std::pair<int, std::bitset<NumCos> > > ListOfDependentCis_t;
 
 class FaultInfo {
 public:
@@ -40,30 +48,39 @@ public:
             SA1.insert(*iter);
         }
     }
-    void dumpSA0Info() {
-        printf ("List of dominating SA0 nodes: ");
-        dumpInfo(SA0);
+    void dumpSA0Info(FILE* fp) {
+        if (SA0.size() == 0)
+            return;
+        if (debug) printf ("List of dominated SA0 nodes: ");
+        if (fp)fprintf (fp, "List of dominated SA0 nodes: ");
+        dumpInfo(SA0,fp);
     }
-    void dumpSA1Info() {
-        printf ("List of dominating SA1 nodes: ");
-        dumpInfo(SA1);
+    void dumpSA1Info(FILE* fp) {
+        if (SA1.size() == 0)
+            return;
+        if (debug) printf ("List of dominated SA1 nodes: ");
+        if (fp) fprintf (fp, "List of dominated SA1 nodes: ");
+        dumpInfo(SA1,fp);
     }
-    void dumpStuckAtInfo() {
-        dumpSA0Info();
-        dumpSA1Info();
+    void dumpStuckAtInfo(FILE* fp = NULL) {
+        dumpSA0Info(fp);
+        dumpSA1Info(fp);
     }
-    void dumpInfo(ListOfNodes& S) {
+    void dumpInfo(ListOfNodes& S, FILE* fp = NULL) {
         ListOfNodes::iterator iter = S.begin();
         for (; iter != S.end(); ++iter) {
-            printf (" %s",Abc_ObjName(*iter));
+            if (fp) fprintf (fp, " %s",Abc_ObjName(*iter));
+            if (debug) printf (" %s",Abc_ObjName(*iter));
         }
-        printf("\n");
+        if (debug) printf("\n");
+        if (fp) fprintf(fp, "\n");
     }
 };
 
 class FaultCollapse {
 
 private:
+
     static EquivFaultNodes              EquivFaultNodes_zero, EquivFaultNodes_one;
     static std::vector<EquivFaultNodes> vEquivFaultClasses_zero;
     static std::vector<EquivFaultNodes> vEquivFaultClasses_one;
@@ -118,12 +135,15 @@ public:
     static int  getNextPropValue_reverse ( Abc_Obj_t * pPrevNode, Abc_Obj_t * pNode,  int propZeroOld, bool& shouldMarkVisited) ;
     static FaultInfo* getFaultInfo_PI (Abc_Obj_t* pNode);
     static FaultInfo* getFaultInfo_PO (Abc_Obj_t* pNode);
-    static void printEquivClasses();
+    static void printEquivClasses(Abc_Ntk_t* pNtk);
     static FaultCollapse::GateType getGateType(Abc_Obj_t* pNode);
     static FaultInfo* genFaultInfoPI(Abc_Obj_t* pNode);
     static FaultInfo* genFaultInfoPO(Abc_Obj_t* pNode);
     static FaultInfo* getFaultInfoCi(Abc_Obj_t* pNode);
     static FaultInfo* getFaultInfoCo(Abc_Obj_t* pNode);
+    static void MergeRedundantPIFaultInfo(Abc_Ntk_t* pNtk);
+    static void MergeRedundantPIFaultInfo(Abc_Ntk_t* pNtk, std::map<Abc_Obj_t*, int> &mCoNum, FILE* fp, bool processSA1 = false);
+
 };
 
 EquivFaultNodes              FaultCollapse::EquivFaultNodes_zero;
@@ -134,6 +154,7 @@ std::vector<InvFaultPair>    FaultCollapse::vInvFaultClasses;
 std::vector<EquivFaultPair>  FaultCollapse::vEquivFaultClasses;
 NodeFaultInfo                FaultCollapse::mNodeFaultInfo_PI;
 NodeFaultInfo                FaultCollapse::mNodeFaultInfo_PO;
+
 FaultCollapse::GateType FaultCollapse::getGateType(Abc_Obj_t* pNode) {
     if (Abc_ObjIsCo(pNode))
         return CO_TYPE;
@@ -421,8 +442,11 @@ bool FaultCollapse::AddFaninsToEquivOneNode( Abc_Obj_t * pPrevNode, Abc_Obj_t * 
    SeeAlso     []
 
 **********************************************************************/
-void FaultCollapse::printEquivClasses() {
-    const char* filename = "equiv_fault_nodes.info";
+void FaultCollapse::printEquivClasses(Abc_Ntk_t* pNtk) {
+    string fname = Abc_NtkName(pNtk);
+    fname += ".";
+    fname += "equiv_fault_nodes.info";
+    const char* filename = fname.c_str();
     FILE* fp = fopen(filename, "w");
     if (!fp) {
         printf ("Unable to open file %s.\n",filename);
@@ -627,7 +651,7 @@ void Abc_NtkDfsFwdProp( Abc_Ntk_t * pNtk )
         }
         if (debug) printf ("<--- End working on PI %s\n\n",Abc_ObjName(pObj));
     }
-    FaultCollapse::printEquivClasses();
+    FaultCollapse::printEquivClasses(pNtk);
     FaultCollapse::Reset();
 }
 /**Function*************************************************************
@@ -700,7 +724,185 @@ int FaultCollapse::getNextPropValue ( Abc_Obj_t * pPrevNode, Abc_Obj_t * pNode, 
     }
     return propZero;
 }
+bool isGt (const std::pair<int, std::bitset<NumCos> >& a, const std::pair<int, std::bitset<NumCos> >& b) {
+    if ( a.second.count() > b.second.count())
+        return true;
 
+    return false;
+}
+void FaultCollapse::MergeRedundantPIFaultInfo(Abc_Ntk_t* pNtk, std::map<Abc_Obj_t*, int> &mCoNum, FILE* fp, bool processSA1) {
+
+    int i = 0;
+    Abc_Obj_t* pCi = NULL;
+    ListOfDependentCis_t ListOfDependentCis;
+    std::bitset<NumCos> temp;
+    ListOfDependentCis.clear();
+
+    //1. Generate CO dominance bit string for each PI
+    Abc_NtkForEachCi( pNtk, pCi, i )
+    {
+        temp.reset();
+        FaultInfo *f = FaultCollapse::getFaultInfo_PO(pCi);
+        ListOfNodes::iterator iter, end;
+        if (processSA1) {
+            if (f->SA1.size() == 0) continue;
+            iter = f->SA1.begin();
+            end = f->SA1.end();
+        } else {
+            if (f->SA0.size() == 0) continue;
+            iter = f->SA0.begin();
+            end = f->SA0.end();
+        }
+        for (; iter != end; ++iter) {
+            temp.set(mCoNum[*iter]);
+        }
+        std::pair<int,std::bitset<NumCos> > p(i,temp);
+        ListOfDependentCis.push_back(p);
+        if (debug) {
+            printf ("PI %s\n",Abc_ObjName(pCi));
+            f->dumpSA1Info(NULL);
+            //std::string bit_string = temp.to_string<char,std::string::traits_type,std::string::allocator_type>();
+            std::string bit_string = temp.to_string();
+            printf ("bit_string %s\n",bit_string.c_str());
+        }
+    }
+
+    //2. Sort the Listofdependentcis based on number of bits set in the bit_string
+    ListOfDependentCis.sort(isGt);
+
+    //3. Do bitwise and of the bit strings of pair of PIs, and merge the redundant ones
+    ListOfDependentCis_t::iterator iter1, iter2, curr, end;
+    end = ListOfDependentCis.end();
+    int total_merges = 0;
+    for ( iter1 = ListOfDependentCis.begin(); iter1 != end; ++iter1) {
+        for ( iter2 = iter1, ++iter2; iter2 != end; ) {
+            curr = iter2; ++iter2;
+            if (debug) printf("Comparing %s and %s\n",Abc_ObjName(Abc_NtkCi(pNtk,iter1->first)), Abc_ObjName(Abc_NtkCi(pNtk,curr->first)));
+            if ( iter1->second.count() >= curr->second.count()) {
+                std::bitset<NumCos> a ;
+                a.reset();
+                a |= iter1->second;
+                a &= curr->second;
+                if (debug) {
+                    std::string first_string = iter1->second.to_string();
+                    std::string second_string = curr->second.to_string();
+                    std::string final_string = a.to_string();
+                    printf ("%s\n",Abc_ObjName(Abc_NtkCi(pNtk,iter1->first)));
+                    printf ("bit_string =  %s\n",first_string.c_str());
+                    printf ("%s\n",Abc_ObjName(Abc_NtkCi(pNtk,curr->first)));
+                    printf ("bit_string =  %s\n",second_string.c_str());
+                    printf ("%s\n","Resultant bitwise and");
+                    printf ("bit_string =  %s\n",final_string.c_str());
+                }
+                if (a.count() == curr->second.count()) {
+                    if (debug) printf ("Merging PIs %s and %s for %s faults\n",Abc_ObjName(Abc_NtkCi(pNtk,iter1->first)), Abc_ObjName(Abc_NtkCi(pNtk,curr->first)), (processSA1 ? "SA1" : "SA0"));
+                    ListOfDependentCis.erase(curr);
+                    total_merges++;
+                }
+            }
+        }
+    }
+
+    //4. Print the resultant PIs and their dominance info.
+    i = 0; pCi = NULL;
+    fprintf (fp, "****************************************\n");
+    fprintf (fp, "********** Stuck at %s faults ********\n", (processSA1 ? " One" : "Zero"));
+    fprintf (fp, "****************************************\n");
+    for (ListOfDependentCis_t::iterator iter = ListOfDependentCis.begin(); iter != ListOfDependentCis.end(); ++iter ) {
+        Abc_Obj_t* pCi = Abc_NtkCi(pNtk,iter->first);
+        FaultInfo *f = FaultCollapse::getFaultInfo_PO(pCi);
+        fprintf (fp ,"PI %s\n",Abc_ObjName(pCi));
+        if (debug) printf ("PI %s\n",Abc_ObjName(pCi));
+        if (processSA1)
+            f->dumpSA1Info(fp);
+        else
+            f->dumpSA0Info(fp);
+    }
+    fprintf (fp, "Total Merges = %d\n", total_merges);
+}
+void FaultCollapse::MergeRedundantPIFaultInfo(Abc_Ntk_t* pNtk) {
+
+    int i = 0;
+    Abc_Obj_t *pObj = NULL;
+    std::map<Abc_Obj_t*, int> mCoNum;
+    Abc_NtkForEachCo ( pNtk, pObj, i) {
+        mCoNum[pObj] = i;
+    }
+    string filename = Abc_NtkName(pNtk);
+    filename += ".";
+    filename += "merged_dominant_fault_nodes_PI.info";
+    const char* filename2 = filename.c_str();
+    FILE* fp = fopen(filename2, "w");
+    if (!fp) {
+        printf ("Unable to open file %s.\n",filename2);
+        return;
+    }
+    MergeRedundantPIFaultInfo(pNtk, mCoNum, fp, false /* processSA1 */); // SA0
+    MergeRedundantPIFaultInfo(pNtk, mCoNum, fp, true  /* processSA1 */); // SA1
+    fclose(fp);
+/*
+    // Process SA0 list
+    i = 0;
+    Abc_NtkForEachCi( pNtk, pCi, i )
+    {
+        temp.reset();
+        FaultInfo *f = FaultCollapse::getFaultInfo_PO(pCi);
+        ListOfNodes::iterator iter = f->SA0.begin();
+        for (; iter != f->SA0.end(); ++iter) {
+            temp.set(mCoNum[*iter]);
+        }
+        ListOfDependentCis[i] = temp;
+        if (debug) {
+            printf ("PI %s\n",Abc_ObjName(pCi));
+            f->dumpSA0Info(NULL);
+            std::string bit_string = temp.to_string<char,std::string::traits_type,std::string::allocator_type>();
+            printf ("bit_string %s\n",bit_string.c_str());
+        }
+    }
+
+    std::map<int, std::bitset<NumCos> >::iterator iter1, iter2, curr, end;
+    end = ListOfDependentCis.end();
+    for ( iter1 = ListOfDependentCis.begin(); iter1 != end; ++iter1 ) {
+        for ( iter2 = iter1, ++iter2; iter2 != end; ) {
+            curr = iter2; ++iter2;
+            if ( iter1->second.count() >= curr->second.count()) {
+                std::bitset<NumCos> a ;
+                a.reset();
+                a |= iter1->second;
+                a &= curr->second;
+                if (a.count() == curr->second.count()) {
+                    if (debug) {
+                        std::string first_string = iter1->second.to_string<char,std::string::traits_type,std::string::allocator_type>();
+                        std::string second_string = curr->second.to_string<char,std::string::traits_type,std::string::allocator_type>();
+                        std::string final_string = a.to_string<char,std::string::traits_type,std::string::allocator_type>();
+                        printf ("S1 =  %s\n",first_string.c_str());
+                        printf ("S2 =  %s\n",second_string.c_str());
+                        printf ("S3 =  %s\n",final_string.c_str());
+                    }
+                    printf ("Merging PIs %s and %s for SA0 faults\n",Abc_ObjName(Abc_NtkCi(pNtk,iter1->first)), Abc_ObjName(Abc_NtkCi(pNtk,curr->first)));
+                    ListOfDependentCis.erase(curr);
+                }
+            }
+        }
+    }
+
+*/
+    /*
+    i = 0; pCi = NULL; pObj = NULL;
+    fprintf (fp, "****************************************\n");
+    fprintf (fp, "********** Stuck at Zero faults ********\n");
+    fprintf (fp, "****************************************\n");
+    Abc_NtkForEachCi( pNtk, pObj, i )
+    {
+        if ( ListOfDependentCis.find(i) != ListOfDependentCis.end()) {
+            FaultInfo *f = FaultCollapse::getFaultInfo_PO(pObj);
+            fprintf (fp ,"PI %s\n",Abc_ObjName(pObj));
+            printf ("PI %s\n",Abc_ObjName(pObj));
+            f->dumpSA0Info(fp);
+        }
+    }
+    */
+}
 /**Function*************************************************************
 
    Synopsis    [Performs DFS for one node.]
@@ -788,33 +990,86 @@ void Abc_NtkDfsReverseProp( Abc_Ntk_t * pNtk )
 
         if (debug) printf ("<--- End working on PO %s\n\n",Abc_ObjName(pObj));
     }
-    FaultCollapse::printEquivClasses();
+    FaultCollapse::printEquivClasses(pNtk);
     FaultCollapse::Reset();
 }
-void Abc_NtkDfsReverse_prop ( Abc_Ntk_t * pNtk )
+void Abc_NtkDfsReverse_prop ( Abc_Ntk_t * pNtk , int dbg )
 {
     Abc_Obj_t * pObj;
     int i;
+    debug = dbg;
     //int propZero = 1;
     // set the traversal ID
     //Abc_NtkIncrementTravId( pNtk );
-
+    assert(Abc_NtkIsMappedLogic(pNtk));
+    string fname = Abc_NtkName(pNtk);
+    fname += ".";
+    fname += "dominant_fault_nodes_PO.info";
+    const char* filename = fname.c_str();
+    FILE* fp = fopen(filename, "w");
+    if (!fp) {
+        printf ("Unable to open file %s.\n",filename);
+    }
     Abc_NtkForEachCo( pNtk, pObj, i )
     {
         if (debug) printf ("---> Start working on PO %s\n",Abc_ObjName(pObj));
         FaultInfo *f = FaultCollapse::getFaultInfo_PI(pObj);
-        f->dumpStuckAtInfo();
+        if (debug) printf ("PO %s\n",Abc_ObjName(pObj));
+        if (fp) fprintf (fp ,"PO %s\n",Abc_ObjName(pObj));
+        f->dumpStuckAtInfo(fp);
         if (debug) printf ("<--- End working on PO %s\n\n",Abc_ObjName(pObj));
     }
+    fclose(fp);
+    fname = Abc_NtkName(pNtk);
+    fname += ".";
+    fname += "dominant_fault_nodes_PI.info";
+    const char* filename2 = fname.c_str();
+    fp = fopen(filename2, "w");
+    if (!fp) {
+        printf ("Unable to open file %s.\n",filename2);
+    }
+/*
     i = 0;
     Abc_NtkForEachCi( pNtk, pObj, i )
     {
         if (debug) printf ("---> Start working on PI %s\n",Abc_ObjName(pObj));
         FaultInfo *f = FaultCollapse::getFaultInfo_PO(pObj);
-        f->dumpStuckAtInfo();
+        printf ("PI %s\n",Abc_ObjName(pObj));
+        if (fp) fprintf (fp ,"PI %s\n",Abc_ObjName(pObj));
+        f->dumpStuckAtInfo(fp);
         if (debug) printf ("<--- End working on PI %s\n\n",Abc_ObjName(pObj));
     }
-
+*/
+    i = 0;
+    fprintf (fp, "****************************************\n");
+    fprintf (fp, "********** Stuck at %s faults ********\n", "Zero");
+    fprintf (fp, "****************************************\n");
+    Abc_NtkForEachCi( pNtk, pObj, i )
+    {
+        if (debug) printf ("---> Start working on PI %s\n",Abc_ObjName(pObj));
+        FaultInfo *f = FaultCollapse::getFaultInfo_PO(pObj);
+        if (f->SA0.size() == 0) continue;
+        if (debug) printf ("PI %s\n",Abc_ObjName(pObj));
+        if (fp) fprintf (fp ,"PI %s\n",Abc_ObjName(pObj));
+        f->dumpSA0Info(fp);
+        if (debug) printf ("<--- End working on PI %s\n\n",Abc_ObjName(pObj));
+    }
+    i = 0;
+    fprintf (fp, "****************************************\n");
+    fprintf (fp, "********** Stuck at %s faults ********\n", " One");
+    fprintf (fp, "****************************************\n");
+    Abc_NtkForEachCi( pNtk, pObj, i )
+    {
+        if (debug) printf ("---> Start working on PI %s\n",Abc_ObjName(pObj));
+        FaultInfo *f = FaultCollapse::getFaultInfo_PO(pObj);
+        if (f->SA1.size() == 0) continue;
+        if (debug) printf ("PI %s\n",Abc_ObjName(pObj));
+        if (fp) fprintf (fp ,"PI %s\n",Abc_ObjName(pObj));
+        f->dumpSA1Info(fp);
+        if (debug) printf ("<--- End working on PI %s\n\n",Abc_ObjName(pObj));
+    }
+    fclose(fp);
+    FaultCollapse::MergeRedundantPIFaultInfo(pNtk);
     FaultCollapse::Reset();
 }
 
